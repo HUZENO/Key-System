@@ -122,3 +122,44 @@ MainTab:CreateToggle({
 		toggleESP(Value)
 	end,
 })
+
+local MainTab = Window:CreateTab("Teleport", 4483362458)
+
+-- กล่อง TextBox สำหรับกรอกชื่อผู้เล่น
+MainTab:CreateInput({
+	Name = "Enter Player Name",
+	PlaceholderText = "เช่น: Player123",
+	RemoveTextAfterFocusLost = false,
+	Callback = function(playerName)
+		local targetPlayer = game.Players:FindFirstChild(playerName)
+		local localPlayer = game.Players.LocalPlayer
+
+		if not targetPlayer then
+			Rayfield:Notify({
+				Title = "ไม่พบผู้เล่น",
+				Content = "ไม่มีผู้เล่นชื่อ '" .. playerName .. "' ในเซิร์ฟเวอร์",
+				Duration = 4
+			})
+			return
+		end
+
+		if targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+			local targetPos = targetPlayer.Character.HumanoidRootPart.Position + Vector3.new(0, 5, 0)
+			if localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart") then
+				localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(targetPos)
+
+				Rayfield:Notify({
+					Title = "เทเลพอร์ตสำเร็จ",
+					Content = "วาร์ปไปยัง " .. playerName .. " แล้ว",
+					Duration = 3
+				})
+			end
+		else
+			Rayfield:Notify({
+				Title = "ไม่สามารถวาร์ปได้",
+				Content = playerName .. " ยังไม่โหลดตัวละครหรือออกจากเกม",
+				Duration = 4
+			})
+		end
+	end,
+})
