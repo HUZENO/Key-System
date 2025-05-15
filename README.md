@@ -37,15 +37,15 @@ local Window = Rayfield:CreateWindow({
 local Tab = Window:CreateTab("Player", 4483362458) -- Title, Image
 local Section = Tab:CreateSection("Player Script")
 local Slider = Tab:CreateSlider({
-   Name = "Speed",
-   Range = {0, 1000},
-   Increment = 10,
-   Suffix = "Bananas",
-   CurrentValue = 10,
-   Flag = "Slider1", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
-   Callback = function(Value)
-        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = Value
-   end,
+	Name = "Speed",
+	Range = {0, 1000},
+	Increment = 10,
+	Suffix = "Bananas",
+	CurrentValue = 10,
+	Flag = "Slider1", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+	Callback = function(Value)
+		game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = Value
+	end,
 })
 
 local Slider = Tab:CreateSlider({
@@ -163,3 +163,70 @@ MainTab:CreateInput({
 		end
 	end,
 })
+local MainTab = Window:CreateTab("Fly", 4483362458)
+
+-- กำหนดค่าตัวแปร
+local flying = false
+local speed = 50  -- ความเร็วในการบิน
+
+-- สร้าง Toggle สำหรับเปิด/ปิด Fly
+MainTab:CreateToggle({
+	Name = "เปิด/ปิด Fly",
+	CurrentValue = false,
+	Flag = "FlyToggle",
+	Callback = function(Value)
+		flying = Value
+		if flying then
+			StartFlying()
+		else
+			StopFlying()
+		end
+	end,
+})
+
+-- ฟังก์ชันเริ่มต้นการบิน
+function StartFlying()
+	local character = game.Players.LocalPlayer.Character
+	if character and character:FindFirstChild("HumanoidRootPart") then
+		local humanoid = character:WaitForChild("Humanoid")
+		local bodyGyro = Instance.new("BodyGyro", character.HumanoidRootPart)
+		local bodyVelocity = Instance.new("BodyVelocity", character.HumanoidRootPart)
+
+		bodyGyro.MaxTorque = Vector3.new(400000, 400000, 400000)
+		bodyGyro.D = 50
+		bodyGyro.CFrame = character.HumanoidRootPart.CFrame
+
+		bodyVelocity.MaxForce = Vector3.new(400000, 400000, 400000)
+		bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+
+		-- บินขึ้นไป
+		bodyVelocity.Velocity = Vector3.new(0, speed, 0)
+
+		-- ควบคุมการบิน
+		spawn(function()
+			while flying do
+				task.wait()
+				local mouse = game.Players.LocalPlayer:GetMouse()
+				local direction = (mouse.Hit.p - character.HumanoidRootPart.Position).unit
+				bodyVelocity.Velocity = direction * speed + Vector3.new(0, 50, 0)
+			end
+		end)
+	end
+end
+
+-- ฟังก์ชันหยุดการบิน
+function StopFlying()
+	local character = game.Players.LocalPlayer.Character
+	if character and character:FindFirstChild("HumanoidRootPart") then
+		local bodyVelocity = character.HumanoidRootPart:FindFirstChildOfClass("BodyVelocity")
+		local bodyGyro = character.HumanoidRootPart:FindFirstChildOfClass("BodyGyro")
+
+		if bodyVelocity then
+			bodyVelocity:Destroy()
+		end
+
+		if bodyGyro then
+			bodyGyro:Destroy()
+		end
+	end
+end
